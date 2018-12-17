@@ -423,28 +423,21 @@ export class BindAutoFloat<T extends {[field: string]: any}, K extends keyof T> 
 
 @observer
 export class Modal extends React.Component<{ className?: string, onClose: () => void }> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @action.bound onClickOutside() {
+    @action.bound onOverlayClick() {
         if (this.dismissable)
             this.props.onClose()
     }
 
-    componentDidMount() {
-        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => { this.dismissable = false; setTimeout(() => this.dismissable = true, 100) })
-        setTimeout(() => document.body.addEventListener("click", this.onClickOutside), 0)
-    }
-
-    componentWillUnmount() {
-        document.body.removeEventListener("click", this.onClickOutside)
+    @bind onModalClick(event: any) {
+        event.stopPropagation()
     }
 
     render() {
         const {props} = this
-        return <div className={"modal" + (props.className ? ` ${props.className}` : "")} style={{display: 'block'}}>
-            <div ref={this.base} className="modal-dialog" role="document">
+        return <div className={"modal" + (props.className ? ` ${props.className}` : "")} style={{display: 'block'}} onClick={this.onOverlayClick}>
+            <div className="modal-dialog" role="document" onClick={this.onModalClick}>
                 <div className="modal-content">
                     {this.props.children}
                 </div>
